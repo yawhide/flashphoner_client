@@ -74,10 +74,12 @@ public class Recorder {
 
         String folder = caller + "-" + callee + "-" + callId;
         String folderPath = Config.WOWZA_HOME + "/content/" + folder;
-        if (!new File(folderPath).exists()) {
-            if (!(new File(folderPath).mkdir())) {
-                log.error("Can't create dir: " + folderPath);
-                return;
+        synchronized (recordingMap) {
+            if (!new File(folderPath).exists()) {
+                if (!(new File(folderPath).mkdir())) {
+                    log.error("Can't create dir: " + folderPath);
+                    return;
+                }
             }
         }
         if (log.isDebugEnabled()) {
@@ -146,7 +148,7 @@ public class Recorder {
                 String filePath = folderPath + "/" + recordingStream.getName() + ".flv";
                 boolean append = true;
                 LiveStreamRecorderFLV liveStreamRecorderFLV = new LiveStreamRecorderFLV();
-                liveStreamRecorderFLV.setStartOnKeyFrame(false);
+                liveStreamRecorderFLV.setStartOnKeyFrame(Config.getInstance().getBooleanProperty("start_recording_on_key_frame", true));
                 liveStreamRecorderFLV.startRecording(recordingStream, filePath, append, new HashMap<String, Object>(), ILiveStreamRecord.SPLIT_ON_DISCONTINUITY_NEVER);
                 recordingMap.put(recordingStream, liveStreamRecorderFLV);
                 log.info("Starting recording stream: " + recordingStream + " filePath: " + filePath + " append: " + append);
